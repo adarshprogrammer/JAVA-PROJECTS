@@ -1,2 +1,2 @@
 # JAVA-PROJECTS
-THIS IS JAVA PROHECT
+Web Applications

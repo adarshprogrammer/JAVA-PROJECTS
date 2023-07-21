@@ -1,0 +1,86 @@
+dispatch..........///
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class Dispatch extends HttpServlet{
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+      
+         
+        String name = req.getParameter("name");
+        String password = req.getParameter("password");
+        
+        if(password.equals("hiet")){
+           req.setAttribute("id", name);
+           req.getRequestDispatcher("Welcome.jsp").forward(req, resp); 
+        } else{
+           req.setAttribute("msg", "sorry this is invalid");
+           req.getRequestDispatcher("Login.jsp").forward(req, resp);
+        }
+    }
+    
+    
+}
+
+redirect...../
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class Redirect extends HttpServlet{
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        
+        String name = req.getParameter("name");
+        String password = req.getParameter("password");
+        
+        if(password.equals("hiet")){
+            resp.sendRedirect("Welcome.jsp");
+        } else{
+            resp.sendRedirect("Login.jsp");
+        }
+     
+    }
+    
+    
+}
+register
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class Register extends HttpServlet{
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        
+        String name = req.getParameter("name");
+        String password = req.getParameter("password");
+        
+        PrintWriter out = resp.getWriter();
+        out.println("hello "+ name + " and your password is "+ password);
+        out.close();
+     
+    }
+    
+    
+} 
+
+
+
+
+
+
+This paste expires in <1 hour. Public IP access. Share whatever you see with others in seconds with Context.Terms of ServiceReport this

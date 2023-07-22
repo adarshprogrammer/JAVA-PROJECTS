@@ -1,0 +1,299 @@
+
+   - for working with MySQL - 
+
+     1st - install WAMP / XAMPP Server / MySQL Server 
+     2nd - now Install the MySQL GUI Tool - 
+             setup -> DBL Click -> Next  -> Complete Installation -> OK
+
+     3rd - Install  JDK1.8 (Link already shared on WhatsApp Group) -> 
+           already installed in HIET Lab PCs 
+
+     4th - Install NetBeans 1.8 (Link already shared on WhatsApp Group) -> 
+           already installed in HIET Lab PCs 
+            setup -> DBL Click -> Next -> Customize -> select Tomcat Server 
+            -> OK -> Next -> Finish  
+    
+ now start XAMPP Server -> start -> XAMPP control panel -> MySQL -> start button
+ 
+ open GUI Tool -> host = localhost, port = 3306, userid = root, password=blank 
+
+ 
+
+create database akash;
+
+use akash;
+
+
+create table tblEmp
+(
+   empno int(5) primary key auto_increment,
+   ename varchar(20),
+   sal decimal(7,2),  -- 99999.99
+   dob date,
+   mobile varchar(14),  -- +91-9211223344
+   lastmodified datetime
+);
+
+insert into tblEmp(ename,sal,dob,mobile,lastmodified)
+values('Adarsh Singh',31999,'1999-01-31','+91-9211223355',now());
+
+select * from tblEmp;
+
+-- for update salary with 20%
+
+update tblEmp set sal = sal+sal*.2;
+
+
+PL/SQL - it is a Block structured programming language - written in blocks
+
+
+DECLARE
+   all declaration;
+BEGIN
+   processing block;
+EXCEPTION 
+   exception handling; 
+END;
+
+-- oracle PL/SQL block
+
+
+DECLARE
+   all declaration;
+BEGIN
+   exception handling; 
+   processing block;
+END;
+
+
+-- oracle PL/SQL block
+
+
+
+    PL/SQL Blocks -   2 Types 
+
+
+               ANONYMOUS BLOCK                      NAMED BLOCK 
+  * without having any name.        * with name - like procedure / functions/
+                                      triggers
+  * not part of the database,       * Part of Database, stored in database 
+    sored as .sql file 
+  * not call in Application Language* can call on Remote PC & in Application language
+    or remote PC.
+  * No Use                          * Major Use in IT 
+
+    * in standard projects - all operations must be done with the help of 
+      procedures
+  
+   		PROCEDURE                          FUNCTIONS
+ * USE FOR TRANSACTION PURPOSE         * USE FOR CALCULATION PURPOSE
+ * DML STATEMENTS R ALLOWED.           * DML STATEMENTS  NOT ALLOWED
+ * NO RETURN ANY VALUE                 * MUST RETURN A VALUE
+ * CALL / USE WITH EXEC[UTE] COMMAND    * USE/CALL WITH SELECT STATEMENT.
+
+ 
+ IN PROCEDURE WE HAVE 2 ARGUMENTS MODES - 
+
+  1. IN MODE - READ ONLY - JO HUM PROCEDURE KO DENGE - THIS IS DEFAULT
+  2. OUT MODE - WRITE ONLY - JO PROCEDURE  HUME DEGA 
+  3. IN OUT MODE - READ & WRITE MODE  - ONLY IN ORACLE
+
+
+ONE TABLE MIN CONTAIN THE  4 PROCEDURE 
+
+   1. ADD & UPDATE 
+   2. GET ALL RECORDS
+   3. GET SELECTED RECORD 
+   4. DELETE RECORD
+   5. OTHERS DEPENDS ON NEED
+
+
+-- procedure for add employee record
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `pawan`.`addEmp` $$
+CREATE PROCEDURE `pawan`.`addEmp`
+(
+   vename varchar(20),
+   vsal decimal(7,2),
+   vdob date,
+   vmobile varchar(14),
+   out msg varchar(100)
+)
+BEGIN
+   insert into tblEmp(ename,sal,dob,mobile,lastmodified)
+   values(vename,vsal,vdob,concat('+91-',vmobile),now());
+   set msg = 'Employee Record Successfully Inserted...';
+END $$
+DELIMITER ;
+
+
+-- for calling on SQL prompt. 
+
+call addEmp('Yogesh',31999,'1999-10-10','9211420420',@a);
+
+select @a;
+
+-- procedure for get Emp data
+DELIMITER $$
+DROP PROCEDURE IF EXISTS getEmpData $$
+CREATE PROCEDURE getEmpData ()
+BEGIN
+   select * from tblEmp order by empno;
+END $$
+DELIMITER ;
+
+-- for calling on SQL prompt. 
+
+call getEmpdata(); 
+
+-- procedure for generate Salary Slip of all Employees
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS salSlip $$
+CREATE PROCEDURE salSlip ()
+BEGIN
+   select empno,ename,sal,sal*.5 as hra,sal*.3 as TA,
+   sal*.27 as DA,sal*.5 as SPLSAL,sal*.12 as PF,
+   sal + sal*.5+sal*.3+sal*.27+sal*.5-sal*.12 as gross
+   from tblemp order by empno;
+END $$
+DELIMITER ;
+
+
+-- for calling on SQL prompt. 
+
+call salSlip()
+
+-- procedure for delete Employee
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `delEmp` $$
+CREATE PROCEDURE `delEmp`(
+   eno int(4),
+   out msg varchar(100)
+)
+BEGIN
+   delete from tblemp where empno=eno;
+    if row_count() = 1 then
+      set msg = 'Employee Record Successfully deleted';
+    else
+      set msg = 'Employee record not found......';
+    end if;
+
+END $$
+DELIMITER ;
+
+
+CALL delEmp(5,@a);
+select @a;
+_________________________________________________________________
+
+create table tblLogin
+(
+   userid varchar(20) primary key,
+   pass varchar(20),
+   wmode varchar(10) default 'USER',
+   mobile varchar(14),
+   mailid varchar(40),
+   lastmodified datetime
+);
+
+_________________________________________________________________
+
+-- procedure for add User.
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS addUser $$
+CREATE PROCEDURE addUser
+(
+   vuserid varchar(20),
+   vpass varchar(20),
+   vmobile varchar(14),
+   vmailid varchar(40),
+   out msg varchar(100)
+)
+BEGIN
+   declare continue handler for 1062
+    set msg = 'Sorry  user Id already in used, try another userId...';
+   set msg ='User Successfully Created, U can Login Now....';
+   insert  into tblLogin values(vuserid,vpass,'USER',vmobile,vmailid,now());
+END $$
+DELIMITER ;
+
+call addUser('akashji','sagar@','9211223344','akaash@gmail.com',@a);
+select @a;
+___________________________________________________________________
+
+-- procedure for checkId. 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS checkId $$
+CREATE PROCEDURE checkId
+(
+
+   vuserid varchar(20),
+   vpass varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+   declare continue handler for 1329
+     set msg = 'Sorry this is Invalid Login Id and Password, re-enter please...';
+   select wmode into msg from tblLogin where userid = vuserid and BINARY pass = vpass;
+END $$
+DELIMITER ;
+
+
+call checkId('akashji','sagar@',@a);
+select @a;
+
+__________________________________________________________________
+
+
+-- procedure for forget Password.
+DELIMITER $$
+DROP PROCEDURE IF EXISTS forgetPass $$
+CREATE PROCEDURE forgetPass
+(
+
+   vuserid varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+   declare continue handler for 1329
+     set msg = 'Sorry this is Invalid Login Id for forget Password, re-enter please...';
+   select concat(pass,':',mobile,':',mailid) into msg from tblLogin where userid = vuserid;
+END $$
+DELIMITER ;
+
+call forgetPass('akashji',@a);
+select @a;
+__________________________________________________________________
+
+-- procedure for changePassword 
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS changePass $$
+CREATE PROCEDURE changePass
+(
+
+   vuserid varchar(20),
+   oldpass varchar(20),
+   newpass varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+  declare  x varchar(20);
+   declare continue handler for 1329
+     set msg = 'Sorry ur Old Password not matched, Plz Enter ur valid old Password';
+   select pass into x from tblLogin where userid = vuserid and BINARY pass = oldpass;
+   if x = oldpass then
+     update tblLogin set pass=newpass where userid = vuserid;
+     set msg = concat(vuserid,' ur password Successfully Changed.. ');
+   end if;
+
+
+END $$
+DELIMITER ;
+
+CALL changePass('akash','sagar@','swami@',@a);
+select @a;
+
+select * from tblLogin;

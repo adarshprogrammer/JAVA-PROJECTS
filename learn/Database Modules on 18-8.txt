@@ -1,0 +1,281 @@
+  steps for project design - 
+
+  
+     1st - divide ur project into modules
+     2nd - select one module - 
+       
+        - common modules in every projects -  
+            1. Admin module / Registration Module - add user / check id 
+                / forget pass / change  password / del user / get user/s 
+                / assign/remove privileges for user / get user report
+            2. complaints module 
+            3. feedback modules 
+            4. contact us module
+            5. FAQ Module 
+            6. Chat Module 
+         
+        I - design database tables & procedures for that modules
+    
+      steps for database design - 
+        1. every table must contain one primary key column, if no need
+           of primary key column then design sno as primary key column
+        2. every table must contain last lastmodified column with datatime
+           data type. 
+        3. all tables must be design with normalize form, relations should be
+           design with primary key & foreign key. 
+           ** table Physically separate hongi but logically linked hongi 
+   
+        4. agar kisi column ko identify nahi kar pa rahe ho data type kya de
+           then design with varchar data type.
+        
+        5. for store photo / doc file / video / zip file column must be
+           design with longblob (4 byte - near about 4GB) data type.
+
+        6. one table must contain min 4 procedures
+
+            1. add / update record
+            2. get all records 
+            3. get selected record 
+            4. delete existing record
+          
+          ** all database operations must be done with the help of procedures
+          * alwyas work with free mind / self motivated           
+
+create database adarsh;
+use adarsh;
+create table tblLogin
+(
+   userid varchar(20) primary key,
+   pass varchar(20),
+   wmode varchar(20) default 'USER',
+   mobile varchar(14),
+   mailid varchar(50),
+   status varchar(1) default 'Y',
+   lastmodified datetime
+);
+
+-- procedure for add User 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `adarsh`.`addUser` $$
+CREATE PROCEDURE `adarsh`.`addUser`
+(
+   vuserid varchar(20),
+   vpass varchar(20),
+   vmobile varchar(14),
+   vmailid varchar(50),
+   out msg varchar(100)
+)
+BEGIN
+  declare continue handler for 1062 # if user already exist
+   set msg = 'Sorry Login Id  already in used, try another Login Id';
+  set msg = 'User Successfully created, U can Login Now';
+  insert into tblLogin(userid,pass,mobile,mailid,lastmodified)
+  values(vuserid,vpass,vmobile,vmailid,now());
+END $$
+DELIMITER ;
+
+  
+CALL addUser('adarsh','swami@','9211420420','adarsh@gmail.com',@a);
+select @a;
+
+-- procedure for checkId 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS `adarsh`.`checkId` $$
+CREATE PROCEDURE `adarsh`.`checkId`
+(
+   vuserid varchar(20),
+   vpass varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+   declare continue handler for 1329 # if no data found
+     set msg = 'Sorry  this invalid Login Id and Password, re-enter Please.';
+   select wmode into msg from tblLogin where userid = vuserid 
+   and binary pass = vpass;
+END $$
+DELIMITER ;
+  
+
+
+CALL checkId('adarshaa','swami@',@a);
+
+select @a;
+ 
+
+
+-- procedure for forget Password.
+DELIMITER $$
+DROP PROCEDURE IF EXISTS forgetPass $$
+CREATE PROCEDURE forgetPass
+(
+   vuserid varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+   declare continue handler for 1329
+     set msg = 'Sorry this is Invalid Login Id for forget Password, re-enter please...';
+   select concat(pass,':',mobile,':',mailid) into msg from tblLogin where userid = vuserid;
+END $$
+DELIMITER ;
+
+
+
+
+CALL forgetPass('adarsh',@a);
+
+select @a;
+
+
+-- procedure for changePassword
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS changePass $$
+CREATE PROCEDURE changePass
+(
+
+   vuserid varchar(20),
+   oldpass varchar(20),
+   newpass varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+  declare  x varchar(20);
+   declare continue handler for 1329
+     set msg = 'Sorry ur Old Password not matched, Plz Enter ur valid old Password';
+   select pass into x from tblLogin where userid = vuserid and BINARY pass = oldpass;
+   if x = oldpass then
+     update tblLogin set pass=newpass where userid = vuserid;
+     set msg = concat(vuserid,' ur password Successfully Changed.. ');
+   end if;
+
+
+END $$
+DELIMITER ;
+
+
+
+CALL changePass('akash','sagar@','swami@',@a);
+select @a;
+
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS `delUser` $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delUser`(
+   vuserid varchar(20),
+   out msg varchar(100)
+)
+BEGIN
+   delete from tblLogin where userid = vuserid;
+    if row_count() = 1 then
+      set msg = 'User Successfully deleted';
+    else
+      set msg = 'Sorry User Id not exist...';
+    end if;
+
+END $$
+
+DELIMITER ;
+
+
+CALL delUser('adarsh',@a);
+
+select @a;
+  
+
+package db;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Types;
+public class Admin {
+   // connect() method design that return Connection object
+    private static Connection connect() throws Exception
+    {
+       Class.forName("com.mysql.jdbc.Driver"); // driver load kiya
+       return DriverManager.getConnection("jdbc:mysql://localhost:3306/adarsh","root","");
+    }
+    public static String addUser(String userid,String pass,String mobile,String mailid)
+    {
+        try{
+            String str = String.format("{call addUser('%s','%s','%s','%s',?)}",userid,pass,mobile,mailid);
+            CallableStatement cs = connect().prepareCall(str);
+            cs.registerOutParameter(1,Types.VARCHAR);
+            cs.execute();
+            return cs.getString(1); // return out parameter value
+            /*  or
+            CallableStatement cs = connect().prepareCall("{call addUser(?,?,?,?,?)}");
+            cs.setString(1,userid);
+            cs.setString(2,pass);
+            cs.setString(3,mobile);
+            cs.setString(4,mailid);
+            cs.registerOutParameter(5,Types.VARCHAR);
+            cs.execute();
+            return cs.getString(1); // return out parameter value
+         */
+        }catch(Exception ex) { return "Sorry Exception is - "+ex; }
+    }
+    public static String checkId(String userid,String pass)
+    {
+        try{
+            String str = String.format("{call checkId('%s','%s',?)}",userid,pass);
+            CallableStatement cs = connect().prepareCall(str);
+            cs.registerOutParameter(1,Types.VARCHAR);
+            cs.execute();
+            return cs.getString(1); // return out parameter value
+        }catch(Exception ex) { return "Sorry Exception is - "+ex; }
+    }
+    public static String forgetpass(String userid)
+    {
+        try{
+            String str = String.format("{call forgetPass('%s',?)}",userid);
+            CallableStatement cs = connect().prepareCall(str);
+            cs.registerOutParameter(1,Types.VARCHAR);
+            cs.execute();
+            return cs.getString(1); // return out parameter value
+        }catch(Exception ex) { return "Sorry Exception is - "+ex; }
+    }
+}
+
+
+
+
+package db;
+public class CallMe {
+    public static void main(String[] args) {
+    //    String msg = Admin.addUser("babu", "pintu@", "9211223344","babu@gmail.com");
+    //    System.out.println(msg);
+    //    String msg = Admin.checkId("babuaa", "pintu@");
+    //    System.out.println(msg);
+        String msg = Admin.forgetpass("babu");
+        System.out.println(msg);
+        String ar[] = msg.split(":");
+        System.out.println("pass - "+ar[0]);
+        System.out.println("mobile - "+ar[1]);
+        System.out.println("Mail Id - "+ar[2]);
+    }
+}
+
+
+run:
+pintu@:9211223344:babu@gmail.com
+pass - pintu@
+mobile - 9211223344
+Mail Id - babu@gmail.com
+BUILD SUCCESSFUL (total time: 0 seconds)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

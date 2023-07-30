@@ -1,0 +1,67 @@
+setData_______________
+
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS `setData` $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `setData`(
+vuserid varchar(20),
+vpass varchar(20),
+vname varchar(20),
+vdob date,
+vmailid varchar(40),
+vmobile varchar(14) ,
+vaddress varchar(100) ,
+out msg varchar(100)
+)
+BEGIN
+declare continue handler for 1062 # for existing data
+set msg ='Sorry login id Alaready exist, plz enter another userid';
+insert into emplogin values(vuserid,vpass,'USER','Y',now());
+if row_count()= 1 then
+insert into empprofile values(vuserid,vname,vdob,vmailid,concat('+91-',vmobile),vaddress,now());
+set msg ='User\'id created successfully, U\'can Login Now';
+end if;
+END $$
+
+DELIMITER ;
+
+cheakId------------------------------
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS `cheakId` $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `cheakId`(
+vuserid varchar(20),
+vpass varchar(20),
+out msg varchar(100)
+)
+BEGIN
+declare continue handler for 1329# if data not found
+set msg='Sorry this Invalid Login and Password !';
+select concat(wmode) into msg from emplogin where userid=vuserid and binary pass=vpass;
+END $$
+
+DELIMITER ;
+
+delData------------------------------
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS `delData` $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delData`(
+vuserid varchar(20),
+vpass varchar(20),
+out msg varchar(100)
+)
+BEGIN
+
+delete from emplogin where userid=vuserid and binary pass=vpass;
+if row_count()=1 then
+delete from empprofile where userid=vuserid;
+set msg ='user successfully deleted';
+else
+set msg ='invalied login and password!';
+end if;
+END $$
+
+DELIMITER ;
